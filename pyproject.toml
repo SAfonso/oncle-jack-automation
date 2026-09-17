@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "oncle-jack-automation"
+version = "0.1.0"
+description = "Resuelve sabor de plantilla, lineup y revelado progresivo para Monólogos de L'Oncle Jack"
+requires-python = ">=3.10"
+dependencies = [
+    "click>=8.1",
+    "openpyxl>=3.1",
+]
+
+[project.scripts]
+oncle-jack = "oncle_jack.cli:cli"
+
+[tool.setuptools.packages.find]
+where = ["src"]
