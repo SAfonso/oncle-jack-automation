@@ -29,7 +29,8 @@ pueda probar sin IA ni APIs externas de diseño, se prueba aquí.
   desde una ruta **local** en disco.
 - Resolver el sabor de un mes: override explícito → si no, calendario.
 - Aplicar el intercambio en el calendario cuando hay override, con la
-  protección de los meses fijos (Octubre=Original, Diciembre=Winter).
+  protección de los meses fijos (Octubre=Original, Diciembre=Winter,
+  Marzo=BlackBerry).
 - Calcular el estado de revelado (qué nombres tapar) para un paso
   1–4 de la secuencia.
 - Marcar un evento como "Generado" en el Excel.
@@ -67,7 +68,7 @@ con I/O, y en tests se prueba contra un `.xlsx` de fixture en disco, con
 class CalendarEntry:
     mes: str            # "Octubre", "Noviembre", ...
     sabor: str
-    fijo: bool          # True solo para Octubre y Diciembre
+    fijo: bool          # True para los meses fijos: Octubre, Diciembre, Marzo
 
 @dataclass
 class Comico:
@@ -115,17 +116,19 @@ Cada bloque de aquí abajo es (como mínimo) un test en `tests/`.
 
 ### 5.3 `apply_override_swap(calendario, mes, sabor_pedido)` — pura, sin I/O
 
-- Caso normal: `mes` tenía sabor "RIE", "Blue" estaba en "Marzo" → tras
-  la llamada, `mes` = "Blue" y "Marzo" = "RIE". Devuelve el calendario
+- Caso normal: `mes` tenía sabor "RIE", "Blue" estaba en "Abril" → tras
+  la llamada, `mes` = "Blue" y "Abril" = "RIE". Devuelve el calendario
   actualizado.
 - Si `mes` ya tenía asignado `sabor_pedido` → no hace ningún cambio
   (idempotente), lo devuelve tal cual.
 - Si `sabor_pedido` no existe en ningún mes del calendario → lanza
   `ValueError` ("sabor desconocido").
-- **Protección de meses fijos:** si `mes` es un mes fijo (Octubre o
-  Diciembre) O si el mes donde estaba `sabor_pedido` es un mes fijo →
-  lanza `ValueError` explicando cuál de los dos es fijo y por qué no se
-  puede mover. No se hace el intercambio parcialmente.
+- **Protección de meses fijos:** si `mes` es un mes fijo (Octubre,
+  Diciembre o Marzo) O si el mes donde estaba `sabor_pedido` es un mes
+  fijo → lanza `ValueError` explicando cuál de los dos es fijo y por qué
+  no se puede mover. No se hace el intercambio parcialmente. Qué mes es
+  fijo lo dice el dato (`fijo: bool` de `CalendarEntry`, columna `Tipo`
+  del Excel) — el código no tiene la lista de meses fijos hardcodeada.
 
 ### 5.4 `excel_source` — con un `.xlsx` real de fixture, nunca de producción
 

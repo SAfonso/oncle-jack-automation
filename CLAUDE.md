@@ -21,9 +21,9 @@ Drive — de momento vive en este proyecto), con 4 hojas:
   Canva (`Plantillas > <Sabor>`). Son literales — hay que usarlos tal cual,
   sin traducir ni cambiar mayúsculas.
 - **Calendario_Sabores**: qué sabor le toca a cada mes de la temporada
-  26/27. Octubre = "Original" y Diciembre = "Winter" son **fijos**, no se
-  tocan salvo por la mecánica de intercambio (ver abajo). El resto de
-  meses los rellena el usuario.
+  26/27. Octubre = "Original", Diciembre = "Winter" y Marzo = "BlackBerry"
+  son **fijos**, no se tocan salvo por la mecánica de intercambio (ver
+  abajo). El resto de meses los rellena el usuario.
 - **Eventos**: una fila por show — fecha, lugar, MC's, y los 4 cómicos
   (nombre + link a su foto ya editada con el filtro). Columna
   `Sabor_override`: normalmente vacía; si tiene un valor, fuerza ese sabor
@@ -65,14 +65,15 @@ cuando este mes no era Blue en el calendario):
 1. Anota qué sabor tenía asignado ESTE mes en `Calendario_Sabores`
    (p. ej. "RIE").
 2. Busca en qué mes estaba asignado el sabor pedido ("Blue") en el
-   calendario (p. ej. "Marzo").
-3. Intercambia los dos: este mes pasa a tener "Blue", y "Marzo" pasa a
+   calendario (p. ej. "Abril").
+3. Intercambia los dos: este mes pasa a tener "Blue", y "Abril" pasa a
    tener "RIE". Escribe ese intercambio de vuelta en la hoja
    `Calendario_Sabores` del Excel.
 4. Genera el cartel/reel de este mes usando el sabor pedido ("Blue").
-5. Nunca toques las filas fijas (Octubre=Original, Diciembre=Winter) como
-   destino de un intercambio — si el sabor pedido resulta estar asignado
-   a Octubre o Diciembre, avisa al usuario en vez de mover esas filas.
+5. Nunca toques las filas fijas (Octubre=Original, Diciembre=Winter,
+   Marzo=BlackBerry) como destino de un intercambio — si el sabor pedido
+   resulta estar asignado a Octubre, Diciembre o Marzo, avisa al usuario
+   en vez de mover esas filas.
 
 ## El proceso paso a paso, por evento
 
