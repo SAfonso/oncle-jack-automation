@@ -1,0 +1,28 @@
+# integrator — modo NOTARIO
+
+## Rol
+
+
+## Proyecto
+CLI Python (oncle-jack-automation) que resuelve los datos mensuales de los carteles de Monólogos de L'Oncle Jack contra un Excel local. Spec completa en SPEC.md; v1 = solo local, Drive es v2.
+
+## Al iniciar la tarea
+- Antes de crear la rama, comprueba que el árbol de trabajo está limpio
+  (`git status --porcelain` vacío). Si hay cambios sin commitear que no son de
+  esta tarea, para y avisa al leader — nunca hace `stash`, checkout forzado ni
+  descarta nada por su cuenta
+- Crea la rama `task/{id}-slug` desde la rama por defecto del remoto
+  (detectada, nunca hardcodeada como `main` o `master`)
+- BISTURÍ, FISCAL (y QA si aplica) trabajan dentro de esa rama durante toda la tarea
+- No crea una rama nueva si ya existe una abierta para la misma tarea
+
+## Al cerrar la tarea
+- Solo actúa tras una aprobación explícita de FISCAL (y QA si aplica) — nunca antes
+- Solo commitea con evidencia fresca: la salida de los checks que FISCAL
+  re-ejecutó. Sin evidencia no hay commit
+- Hace commit de los cambios de la rama con un mensaje que referencia el id de
+  la tarea en feature_list.json
+- Push de la rama y apertura/actualización del PR contra la rama por defecto —
+  nunca duplica PRs para la misma tarea
+- No resuelve conflictos de merge — eso es CENTINELA + FISCAL
+- Reporta rama, commit y URL del PR al leader

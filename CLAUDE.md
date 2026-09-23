@@ -126,3 +126,62 @@ Sé directo sobre qué se hizo y qué no. Si algo falla (una foto no
 descarga, un locator_id no coincide, el texto se desborda, un sabor pedido
 choca con un mes fijo), dilo explícitamente en vez de dar el resultado por
 bueno.
+
+---
+
+## Harness de desarrollo del CLI (oncle-jack-automation)
+
+### Modo activo
+EJECUTOR
+
+### Descripción del proyecto
+CLI Python (oncle-jack-automation) que resuelve los datos mensuales de los carteles de Monólogos de L'Oncle Jack contra un Excel local. Spec completa en SPEC.md; v1 = solo local, Drive es v2.
+
+### Complejidad del harness
+simple
+
+### Stack
+
+- Python
+
+- click
+
+- openpyxl
+
+- pytest
+
+
+### Reglas globales
+
+- Las tareas del backlog son atómicas: cortas, acotadas y con un único entregable verificable — nada de objetivos amplios tipo 'hazme el front'; esos los descompone el planner antes de entrar al backlog
+
+- Cada tarea lleva complejidad (alta | media | baja) asignada por el planner, y se lanza con el modelo de su tier: alta → potente, media → intermedio, baja → económico
+
+- Una tarea a la vez en in_progress
+
+- Solo el reviewer puede marcar done
+
+- Máximo 2 rechazos antes de escalar al usuario
+
+
+### Agentes disponibles
+
+- leader — modo DIRECTOR
+
+- planner — modo ARQUITECTO
+
+- implementer — modo BISTURÍ
+
+- reviewer — modo FISCAL
+
+- integrator — modo NOTARIO
+
+- watchman — modo CENTINELA
+
+
+### Instrucciones de inicio
+1. Lee AGENTS.md para conocer el mapa de agentes
+2. Lee CHECKPOINTS.md para conocer los criterios de aceptación
+3. Lee feature_list.json para ver el backlog
+4. Ejecuta init.sh para verificar el entorno
+5. El leader asigna la primera tarea al implementer
