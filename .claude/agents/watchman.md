@@ -1,3 +1,8 @@
+---
+name: watchman
+description: Verifica CI y merge tras la integración; si falla, reabre el ciclo de revisión con el reviewer
+---
+
 # watchman — modo CENTINELA
 
 ## Rol

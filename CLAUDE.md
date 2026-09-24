@@ -179,6 +179,13 @@ simple
 - watchman — modo CENTINELA
 
 
+### Cómo trabajar
+Cualquier instrucción nueva que implique cambiar el proyecto (funcionalidad,
+corrección, refactor) se delega en el subagente `leader`: no la ejecutes
+directamente. El leader te hará preguntas para fijar la spec y descompondrá el
+trabajo en tareas atómicas antes de implementar nada. Las preguntas puramente
+informativas se responden sin pasar por él.
+
 ### Instrucciones de inicio
 1. Lee AGENTS.md para conocer el mapa de agentes
 2. Lee CHECKPOINTS.md para conocer los criterios de aceptación

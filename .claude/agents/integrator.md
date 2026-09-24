@@ -1,3 +1,8 @@
+---
+name: integrator
+description: Formaliza en git el trabajo aprobado: crea la rama al iniciar la tarea y hace commit+push+PR al cerrarla
+---
+
 # integrator — modo NOTARIO
 
 ## Rol

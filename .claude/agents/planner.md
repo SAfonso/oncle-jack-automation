@@ -1,3 +1,8 @@
+---
+name: planner
+description: Descompone objetivos en tareas atómicas y asigna complejidad a cada una
+---
+
 # planner — modo ARQUITECTO
 
 ## Rol

@@ -1,3 +1,8 @@
+---
+name: reviewer
+description: Revisa y valida el output contra los criterios de aceptación
+---
+
 # reviewer — modo FISCAL
 
 ## Rol

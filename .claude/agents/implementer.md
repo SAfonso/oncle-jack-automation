@@ -1,3 +1,8 @@
+---
+name: implementer
+description: Implementa las tareas del backlog
+---
+
 # implementer — modo BISTURÍ
 
 ## Rol
