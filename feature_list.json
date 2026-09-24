@@ -32,5 +32,163 @@
     "priority": "medium",
     "complejidad": "baja",
     "depends_on": []
+  },
+  {
+    "id": 5,
+    "title": "Bustos: añadir Pillow y crop_to_alpha_bbox (recorte de transparencia al bbox del alfa)",
+    "status": "pending",
+    "priority": "medium",
+    "complejidad": "media",
+    "depends_on": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "spec_ref": "SPEC_BUSTOS §4, §5 (Pillow), §7",
+    "descripcion": "TDD. Dependencia nueva Pillow (justificación: único modo fiable de leer el canal alfa y recortar al bbox; no hay alternativa en stdlib ni en openpyxl) añadida a pyproject/requirements. Función pura crop_to_alpha_bbox(img)->img en src/oncle_jack/bustos.py. Tests con PNG sintéticos: margen transparente -> tamaño del bbox; alfa totalmente vacío -> ValueError explícito; imagen sin alfa -> error. NO toca CLI, Canva ni Excel."
+  },
+  {
+    "id": 6,
+    "title": "Bustos: calcular escala y posición (fit_and_center) con max_pct",
+    "status": "pending",
+    "priority": "medium",
+    "complejidad": "media",
+    "depends_on": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "spec_ref": "SPEC_BUSTOS §4, §7",
+    "descripcion": "TDD. Función pura fit_and_center(bbox_w,bbox_h,canvas_w=1080,canvas_h=1350,max_pct=0.70)->{ancho,alto,escala,left,top}. Tests: límite 756x945 por defecto, rige el que se alcance antes, proporción intacta, centrado exacto en ambos ejes, max_pct configurable, amplía o reduce, entradas <=0 o max_pct fuera de (0,1] -> ValueError. Sin Pillow ni I/O. NO toca CLI."
+  },
+  {
+    "id": 7,
+    "title": "Bustos: comando oncle-jack validate-bustos --dir (plan JSON)",
+    "status": "pending",
+    "priority": "medium",
+    "complejidad": "media",
+    "depends_on": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      13
+    ],
+    "spec_ref": "SPEC_BUSTOS §3.5, §6.1, §7",
+    "descripcion": "TDD con click.testing y PNG sintéticos en tmp_path. Comprueba entre 1 y 7 PNG (MIN=1, MAX=7; 0 u 8+ -> error; N=nº de PNG), canal alfa y patrón busto_N_descripcion.png; recibe --sabor (override opcional, supuesto pendiente) y --excel/EXCEL_PATH; sin --sabor infiere con infer_last_sabor (tarea 13); emite JSON con n, sabor, origen_sabor (inferido|parametro), carpeta_destino ('Plantillas/<Sabor>/ComicosFin') y por busto: archivo, nombre_diseno, tamano_recortado, escala, posicion (reutilizando tareas 5 y 6). Errores (falta PNG, sin alfa, nombre mal formado, alfa vacío) -> exit != 0 con mensaje claro. NO llama a Canva; solo LEE el Excel para inferir el sabor, nunca lo escribe. Tests: 1, 3 y 7 PNG válidos; 0 y 8 -> exit != 0. Tests adicionales: con --sabor no se lee el Excel; sin --sabor y sin Generado -> exit != 0."
+  },
+  {
+    "id": 8,
+    "title": "Bustos: añadir anthropic y parser/validador de la propuesta de selección",
+    "status": "pending",
+    "priority": "medium",
+    "complejidad": "media",
+    "depends_on": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "spec_ref": "SPEC_BUSTOS §5, §7",
+    "descripcion": "TDD. Dependencia nueva anthropic (justificación: juicio visual subjetivo no determinista; SAM/torch descartados). Función pura parse_selection(json_str, image_sizes)->list[Propuesta] con esquema estricto (persona, foto, caja/puntos) y rango dentro de la imagen. Tests: válida -> parseada; esquema roto, JSON inválido, coordenadas fuera de imagen -> error. Sin red ni clave. NO implementa el cliente. Lista de personas de longitud variable, 1 a 7."
+  },
+  {
+    "id": 9,
+    "title": "Bustos: cliente de selección con cliente inyectable y cliente simulado",
+    "status": "pending",
+    "priority": "medium",
+    "complejidad": "media",
+    "depends_on": [
+      1,
+      2,
+      3,
+      4,
+      8
+    ],
+    "spec_ref": "SPEC_BUSTOS §3.2, §5, §7",
+    "descripcion": "TDD. select_best_photos(dir, client=None) construye la petición de visión, lee ANTHROPIC_API_KEY solo de entorno (.env, ya ignorado por git) y pasa la respuesta por parse_selection (tarea 8). Tests con cliente simulado: respuesta válida -> propuesta; respuesta rota -> error; sin ANTHROPIC_API_KEY -> error explícito sin abrir red. Sin secretos en código, tests ni ejemplos. No hay aprobación aquí: solo propone. NO hace recorte. Nº de personas/fotos variable (1 a 7): sin asumir 6."
+  },
+  {
+    "id": 10,
+    "title": "Bustos: recorte a busto a partir de la caja de la API (opción a) y aviso de vecinos",
+    "status": "pending",
+    "priority": "medium",
+    "complejidad": "media",
+    "depends_on": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      9
+    ],
+    "spec_ref": "SPEC_BUSTOS §3.3-3.4, §5 asunto abierto",
+    "descripcion": "TDD. Con la caja aprobada por Sergio, recorta la foto a la caja (Pillow, sin dependencia nueva) y deja el PNG listo para remove-background de Canva; salida busto_N_descripcion.png. Función pura de aviso: si la caja de una persona solapa con la de otra persona de la misma foto -> devuelve advertencia (no bloquea). Tests con imagen sintética: recorte exacto de la caja, caja fuera de rango -> error, cajas solapadas -> aviso, sin solape -> sin aviso. NO añade rembg. Decisión SPEC_BUSTOS §5 (a) confirmada por Sergio."
+  },
+  {
+    "id": 11,
+    "title": "Bustos: sección nueva en CLAUDE.md con las instrucciones de Canva",
+    "status": "pending",
+    "priority": "medium",
+    "complejidad": "alta",
+    "depends_on": [
+      1,
+      2,
+      3,
+      4,
+      7,
+      10,
+      13
+    ],
+    "spec_ref": "SPEC_BUSTOS §6",
+    "descripcion": "Entregable único: sección 'Flujo de bustos' en CLAUDE.md con disparador ('ya están las fotos finales' y variantes, pedir ruta), fases con aprobación de Sergio antes de recortar, y los 9 pasos de SPEC_BUSTOS §6 (comprobar acceso a canva.com, subir bytes no upload-asset-from-url, copy-design de DAHWAo4A-jQ con título del busto, puerta de aprobación solo en el primero, exportar y verificar, mover solo diseños, avisar de PNG en Subidos, buscar subidas por Busto/ID, listar Plantillas/<Sabor>/ComicosFin y confirmar los N diseños esperados, N = nº de PNG de entrada). Sin tocar el resto de CLAUDE.md (que tiene cambios sin commitear: coordinar). Verificable por lectura contra §6. Incluir: quitar fondo con remove-background de Canva, avisar de posibles vecinos (aviso de tarea 10) y usar la miniatura de aprobación para detectarlos. Nº de bustos variable 1-7; carpeta destino Plantillas/<Sabor>/ComicosFin ; el sabor se infiere del último generado en carteles (validate-bustos, SPEC_BUSTOS §6.2) y el flujo debe MOSTRARLO a Sergio (y de qué evento sale) antes de continuar."
+  },
+  {
+    "id": 12,
+    "title": "Bustos: actualizar CHECKPOINTS.md y README (comando, dependencias, API key)",
+    "status": "pending",
+    "priority": "low",
+    "complejidad": "baja",
+    "depends_on": [
+      1,
+      2,
+      3,
+      4,
+      11,
+      13,
+      14
+    ],
+    "spec_ref": "SPEC_BUSTOS §5, §7",
+    "descripcion": "Documentación: añadir a CHECKPOINTS.md criterios de aceptación de bustos (tests de §7, pytest verde sin red ni secretos) y a README el uso de validate-bustos, dependencias Pillow/anthropic y ANTHROPIC_API_KEY por entorno (.env.example sin valor real). La enmienda de la restricción 'Sin credenciales' ya la hace la tarea 14: no duplicarla aquí. NO toca SPEC.md. Documentar 1-7 bustos y --sabor (opcional) y la inferencia del sabor desde el Excel (solo lectura)."
+  },
+  {
+    "id": 13,
+    "title": "Bustos: inferir el último sabor generado en carteles (solo lectura del Excel)",
+    "status": "pending",
+    "priority": "medium",
+    "complejidad": "media",
+    "depends_on": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "spec_ref": "SPEC_BUSTOS §6.2",
+    "descripcion": "TDD. Función infer_last_sabor(calendario, eventos)->(sabor, evento) en src/oncle_jack/, reutilizando excel_source.load_workbook y resolve_sabor (override o calendario). Elige el evento Estado='Generado' de Fecha más reciente. Tests con fixture: uno Generado -> su sabor; varios en meses distintos -> el de fecha más reciente; con Sabor_override -> el override; ninguno Generado -> error explícito; empate de fecha con sabores distintos -> error; mes ausente del calendario -> KeyError. Solo lectura: no escribe el Excel ni hace swap, sin cambios de esquema. Devuelve también el evento para que el flujo muestre de dónde sale. 'Último' = fecha de show más reciente con Estado='Generado' (confirmado por Sergio)."
+  },
+  {
+    "id": 14,
+    "title": "Reformular la restricción 'sin credenciales / v1 solo local' (CHECKPOINTS.md y CLAUDE.md)",
+    "status": "pending",
+    "priority": "high",
+    "complejidad": "baja",
+    "depends_on": [],
+    "spec_ref": "SPEC_BUSTOS §5, §9",
+    "descripcion": "Solo reformula la restricción, sin otros cambios. Redacción confirmada por Sergio: 'sin credenciales en la v1 de carteles; los bustos usan solo variable de entorno (ANTHROPIC_API_KEY), nunca en el repo'. En CHECKPOINTS.md sustituye la línea 'Sin credenciales, v1 solo local, Drive es v2.' conservando 'Drive es v2'. CLAUDE.md hoy no contiene esa frase: solo se toca si aparece la restricción; no mezclar los cambios sin commitear de Sergio en CLAUDE.md en el commit (coordinar con integrator, árbol limpio). Verificable por lectura. Adelantada a petición de Sergio; no depende de 1-4."
   }
 ]
