@@ -77,7 +77,7 @@ class Comico:
 
 @dataclass
 class Event:
-    fecha: str           # dd/mm/yyyy
+    fecha: datetime.date # tipo interno unico; el Excel puede traer datetime real o texto dd/mm/yyyy (ver 5.4); en el JSON de resolve se serializa dd/mm/yyyy
     mes: str             # derivado de fecha
     lugar: str
     mc_1: str
@@ -134,6 +134,20 @@ Cada bloque de aquí abajo es (como mínimo) un test en `tests/`.
 
 - `load_workbook(path)` → devuelve `(calendario: list[CalendarEntry],
   eventos: list[Event])` a partir del `.xlsx` en esa ruta.
+- **Fechas:** la columna `Fecha` de `Eventos` puede traer un `datetime` real
+  de Excel o texto `dd/mm/yyyy`; el cargador acepta ambos y los convierte a
+  un tipo interno único (`datetime.date`). Texto en otro formato, o
+  cualquier otro tipo, → `ValueError` con fila y valor. El cargador no debe
+  fallar por filas de otros meses (fechas válidas, fotos/nombres vacíos).
+- **Validación solo del evento objetivo:** `load_workbook` no valida
+  campos (fotos, nombres) de ningún evento por sí mismo; la validación de
+  5.5 se aplica únicamente al evento del mes que se va a generar
+  (`resolve`). Los meses futuros con campos vacíos son normales (los
+  cómicos se deciden sobre la marcha) y nunca provocan error.
+- Hay como máximo UN evento por mes (año+mes): si dos filas de `Eventos`
+  caen en el mismo año y mes, `load_workbook` lanza `ValueError` indicando
+  ambas fechas. No se exige que los meses sean consecutivos entre sí ni
+  hay 'huecos' que resolver: cada mes tiene su evento.
 - `save_calendar(path, calendario)` → escribe de vuelta solo la hoja
   `Calendario_Sabores` modificada, sin tocar el resto del archivo.
 - `mark_generated(path, evento)` → pone `Estado = "Generado"` en la fila
@@ -156,7 +170,11 @@ resuelve esa URL con el MCP de Canva (p. ej. `resolve-shortlink`); el CLI
   acepta únicamente URLs `https` cuyo host sea `canva.link` o `canva.com`
   (incluye `www.canva.com`). Cualquier otra cosa (Drive, otros dominios,
   texto suelto) se rechaza.
-- Si `foto_url` está vacío o no es válido, se lanza un `ValueError` explícito
+- **Alcance:** esta validación se aplica SOLO al evento del mes objetivo
+  (5.6), nunca a otros meses. Misma regla para los nombres de los 4
+  cómicos: si el evento objetivo tiene algún nombre vacío → error explícito
+  (fecha, posición, columna).
+- Si `foto_url` está vacío o no es válido (en el evento objetivo), se lanza un `ValueError` explícito
   que indica evento (fecha), posición del cómico (1-4), columna y valor
   recibido. `resolve` sale con exit != 0 y ese mensaje; nunca pasa el valor
   inválido en silencio.
@@ -168,11 +186,29 @@ resuelve esa URL con el MCP de Canva (p. ej. `resolve-shortlink`); el CLI
 - Fuera de alcance: cualquier cosa de bustos (`SPEC_BUSTOS.md`); son flujos
   distintos y no se mezclan.
 
+### 5.6 Selección del mes objetivo — función pura, "hoy" inyectable
+
+`mes_objetivo(eventos, hoy: date) -> Event`:
+- Selección sobre fecha completa (año incluido). Hay un evento por mes y
+  los meses de la temporada son consecutivos (no se saltan meses vacíos).
+- Si el mes de `hoy` (mismo año y mes) tiene evento y su `estado` no es
+  `Generado` → ese evento.
+- Si no existe evento para el mes de `hoy` (p. ej. septiembre) o ya está
+  `Generado` → el evento del mes siguiente (secuencial: se repite la regla
+  hasta hallar uno no `Generado`).
+- Si no queda ningún evento no `Generado` en o después del mes de `hoy` →
+  `ValueError` claro.
+- `hoy` es la fecha del sistema en el CLI; los tests la inyectan.
+- Con `--month` explícito NO se aplica esta lógica (permite regenerar un
+  mes ya `Generado`). Nada de esto toca ni depende del flujo de bustos.
+
 ## 6. CLI — comandos
 
 ```
-oncle-jack resolve --month <mes> [--override <sabor>] --excel <ruta>
+oncle-jack resolve [--month <mes>] [--override <sabor>] --excel <ruta>
 ```
+`--month` es opcional: si se omite, el mes es el que da 5.6 (con la fecha del
+sistema); si se pasa, se usa tal cual y se ignora la lógica automática.
 Resuelve sabor (aplicando swap si hay override y lo persiste en el
 archivo), carga el evento de ese mes, y devuelve por stdout un JSON:
 ```json
@@ -180,7 +216,7 @@ archivo), carga el evento de ese mes, y devuelve por stdout un JSON:
   "mes": "Noviembre",
   "sabor": "Blue",
   "carpeta_plantilla": "Plantillas/Blue",
-  "evento": { "fecha": "...", "lugar": "...", "mc_1": "...", "mc_2": "...",
+  "evento": { "fecha": "dd/mm/yyyy", "lugar": "...", "mc_1": "...", "mc_2": "...",
               "comicos": [ {"nombre": "...", "foto_url": "https://canva.link/..."}, ... ] }
 }
 ```
@@ -192,9 +228,10 @@ Devuelve por stdout el JSON de `RevealState` para ese paso. No necesita
 `--excel`, es puro.
 
 ```
-oncle-jack mark-generated --month <mes> --excel <ruta>
+oncle-jack mark-generated [--month <mes>] --excel <ruta>
 ```
-Marca el evento de ese mes como "Generado" en el archivo.
+Sin `--month` usa la misma selección por defecto que `resolve` (5.6); con
+`--month`, el indicado. Marca el evento de ese mes como "Generado" en el archivo.
 
 `--excel` puede omitirse si se define `EXCEL_PATH` en `.env`.
 
