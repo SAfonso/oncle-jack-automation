@@ -26,7 +26,12 @@
       15,
       16,
       17,
-      18
+      18,
+      19,
+      20,
+      21,
+      22,
+      23
     ]
   },
   {
@@ -239,6 +244,68 @@
       16
     ],
     "spec_ref": "SPEC §5.5",
-    "descripcion": "Mecánico con openpyxl sobre datos_carteles_oncle_jack.xlsx (hoja Eventos): col. 7 'Cómico' -> 'Comico_2_Nombre'; fila EJEMPLO: sustituir las 4 URLs drive.google.com/uc?id=EJEMPLOn por URLs de Canva con formato válido (placeholder https://canva.link/... marcado como EJEMPLO; las reales las pone el usuario, la fila EJEMPLO no basta para generar carteles reales). Sin URLs de Drive en el fichero. Nota para el revisor: la fila EJEMPLO tiene Fecha como datetime y otras filas como str dd/mm/yy o dd/mm/yyyy; _mes_de_fecha espera str dd/mm/yyyy, así que resolve contra el Excel real puede fallar: NO se corrige aquí, se anota para la verificación manual (tarea 3). Verificable: script/lectura de cabeceras y test opcional. Conservar el resto de hojas y formato. NO toca src ni bustos."
+    "descripcion": "Datos YA actualizados en datos_carteles_oncle_jack.xlsx (sin commitear): NO rehacer. Entregable restante: revisión del reviewer (lectura de cabeceras: col. 7 = Comico_2_Nombre; sin URLs de Drive; URLs https://canva.link/...) y commit vía PR por el integrator. Estado real del fichero para el revisor: Fecha como datetime en todas las filas; filas futuras con nombres/fotos/Estado vacíos (normal según SPEC §5.4). El fallo de _mes_de_fecha con datetime ya NO se anota para la tarea 3: lo corrige la tarea 19. NO toca src ni bustos."
+  },
+  {
+    "id": 19,
+    "title": "Fechas: Event.fecha pasa a datetime.date (Excel datetime o texto dd/mm/yyyy)",
+    "status": "pending",
+    "priority": "high",
+    "complejidad": "media",
+    "depends_on": [
+      17
+    ],
+    "spec_ref": "SPEC §4, §5.4, §6 (formato fecha en JSON)",
+    "descripcion": "TDD. models.Event.fecha: datetime.date. En excel_source, función parse_fecha(valor, fila)->date: acepta datetime/date de Excel y texto dd/mm/yyyy (con strip); texto en otro formato (p. ej. dd/mm/yy, yyyy-mm-dd), vacío u otro tipo -> ValueError con nº de fila y valor. mes se deriva del date. mark_generated localiza la fila comparando como date (celda datetime o texto). cli serializa fecha como dd/mm/yyyy en el JSON de resolve y de mark-generated. Fixture tests/fixtures/datos_ejemplo.xlsx con al menos una Fecha datetime y otra texto dd/mm/yyyy. Tests: parse_fecha (datetime, texto válido, dd/mm/yy -> error, int -> error, mensaje con fila y valor); load_workbook con fechas mixtas; mark_generated con fila datetime; JSON de resolve con fecha dd/mm/yyyy. NO cambia la validación de fotos (sigue como está) ni el comportamiento de --month."
+  },
+  {
+    "id": 20,
+    "title": "Validador puro del evento objetivo: 4 fotos Canva y 4 nombres no vacíos",
+    "status": "pending",
+    "priority": "high",
+    "complejidad": "baja",
+    "depends_on": [
+      19
+    ],
+    "spec_ref": "SPEC §5.5 (Alcance)",
+    "descripcion": "TDD. Función pura validate_evento_objetivo(evento: Event)->Event (módulo foto_url.py o nuevo, sin I/O): aplica validate_foto_url a los 4 foto_url (columna Comico_N_Foto_URL) y exige nombre no vacío ni solo espacios en los 4 cómicos (columna Comico_N_Nombre); ValueError con fecha dd/mm/yyyy, posición (1-4) y columna (y valor en el caso de foto). Tests: evento válido pasa; nombre vacío/espacios en cada posición -> error con posición y columna; foto inválida -> error (reutiliza validate_foto_url). Baja: reutiliza el validador existente, solo añade la regla de nombres. NO toca excel_source ni cli."
+  },
+  {
+    "id": 21,
+    "title": "load_workbook sin validación; resolve valida solo el evento objetivo",
+    "status": "pending",
+    "priority": "high",
+    "complejidad": "media",
+    "depends_on": [
+      19,
+      20
+    ],
+    "spec_ref": "SPEC §5.4 (Validación solo del evento objetivo), §5.5",
+    "descripcion": "TDD. Quitar el parámetro mes y toda validación de load_workbook (firma load_workbook(path)); cli.resolve llama a validate_evento_objetivo sobre el evento seleccionado y convierte ValueError en ClickException (exit != 0, sin traceback). Tests: fixture con filas de otros meses con nombres/fotos/Estado vacíos -> load_workbook no falla; resolve de un mes válido OK aunque existan esas filas; resolve de un mes con nombre vacío -> exit != 0 con fecha, posición y columna; tests existentes de foto inválida siguen en verde vía resolve; mark-generated no valida. Reescribir/eliminar los tests de excel_source que usan load_workbook(mes=...). NO añade --month opcional ni mes_objetivo. ADEMAS (decision usuario): load_workbook lanza ValueError si dos eventos caen en el mismo año+mes (SPEC 5.4), con test."
+  },
+  {
+    "id": 22,
+    "title": "mes_objetivo(eventos, hoy) pura: selección automática del mes",
+    "status": "pending",
+    "priority": "high",
+    "complejidad": "media",
+    "depends_on": [
+      19
+    ],
+    "spec_ref": "SPEC §5.6",
+    "descripcion": "TDD. Función pura mes_objetivo(eventos, hoy: date)->Event (p. ej. en calendar.py o módulo nuevo, sin I/O ni date.today()). Tests con eventos construidos en memoria: mes de hoy (mismo año y mes) no Generado -> ese; mes de hoy Generado -> el siguiente; sin evento en el mes de hoy (septiembre) -> el siguiente; cadena de varios Generado -> primero no Generado; eventos de años/meses anteriores (aunque Pendiente) se ignoran; mismo mes de otro año no cuenta; Estado vacío/None cuenta como no Generado; ninguno disponible -> ValueError claro. Regla de huecos: ver ambigüedad A1 del planner, debe resolverla el usuario antes de implementar. NO toca cli ni excel_source."
+  },
+  {
+    "id": 23,
+    "title": "--month opcional en resolve y mark-generated (hoy del sistema, inyectable en tests)",
+    "status": "pending",
+    "priority": "high",
+    "complejidad": "media",
+    "depends_on": [
+      21,
+      22
+    ],
+    "spec_ref": "SPEC §5.6, §6",
+    "descripcion": "TDD con click.testing. --month deja de ser required en resolve y mark-generated; sin --month el evento sale de mes_objetivo(eventos, hoy) con hoy = fecha del sistema obtenida por un único punto monkeypatchable (p. ej. función _hoy() en cli); con --month se usa tal cual (permite regenerar un mes Generado). ValueError de mes_objetivo -> ClickException. El campo mes del JSON sale del evento elegido. Tests: resolve sin --month con hoy inyectado elige el evento esperado (incluido saltar uno Generado); con --month sobre un mes Generado lo resuelve; mark-generated sin --month marca el mismo evento que resolve elegiría; sin eventos disponibles -> exit != 0. Actualiza README (una o dos líneas: --month opcional). NO toca excel_source ni la lógica de swap. mark-generated repetido sin --month: sin aviso ni marca especial; marca el mes que elegiria mes_objetivo."
   }
 ]
