@@ -273,7 +273,7 @@
   {
     "id": 21,
     "title": "load_workbook sin validación; resolve valida solo el evento objetivo",
-    "status": "pending",
+    "status": "done",
     "priority": "high",
     "complejidad": "media",
     "depends_on": [

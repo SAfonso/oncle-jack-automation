@@ -75,6 +75,16 @@
       "depends_on": [
         19
       ]
+    },
+    {
+      "id": 21,
+      "status": "done",
+      "resumen": "load_workbook(path) sin validacion ni param mes; ValueError si dos eventos mismo año+mes; resolve valida solo el evento objetivo (validate_evento_objetivo) y falla antes de aplicar override; mark-generated no valida; fix nombre None en validate_evento_objetivo; suite 88 passed; PR #8 mergeado, CI verde.",
+      "scope": "validacion",
+      "depends_on": [
+        19,
+        20
+      ]
     }
   ]
 }

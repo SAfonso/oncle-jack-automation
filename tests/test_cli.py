@@ -1,3 +1,4 @@
+import datetime
 import json
 import shutil
 from pathlib import Path
@@ -256,3 +257,78 @@ def test_mark_generated_no_valida_nombres_vacios(runner, excel_path):
         cli, ["mark-generated", "--month", "Diciembre", "--excel", str(excel_path)]
     )
     assert result.exit_code == 0, result.output
+
+
+def _fijar_hoy(monkeypatch, fecha):
+    monkeypatch.setattr("oncle_jack.cli._hoy", lambda: fecha)
+
+
+def test_resolve_sin_month_mes_actual_pendiente(runner, excel_path, monkeypatch):
+    _fijar_hoy(monkeypatch, datetime.date(2026, 11, 3))
+    result = runner.invoke(cli, ["resolve", "--excel", str(excel_path)])
+
+    assert result.exit_code == 0, result.output
+    assert json.loads(result.output)["mes"] == "Noviembre"
+
+
+def test_resolve_sin_month_mes_actual_generado_pasa_al_siguiente(
+    runner, excel_path, monkeypatch
+):
+    _fijar_hoy(monkeypatch, datetime.date(2026, 11, 3))
+    runner.invoke(cli, ["mark-generated", "--month", "Noviembre", "--excel", str(excel_path)])
+    result = runner.invoke(cli, ["resolve", "--excel", str(excel_path)])
+
+    # El fixture tiene diciembre incompleto: el error cita 12/12/2026, lo que
+    # prueba que el evento elegido es el de diciembre (no el Generado de noviembre).
+    assert result.exit_code != 0
+    assert "12/12/2026" in result.output
+
+
+def test_resolve_sin_month_sin_evento_este_mes_va_al_siguiente(
+    runner, excel_path, monkeypatch
+):
+    _fijar_hoy(monkeypatch, datetime.date(2026, 9, 26))
+    result = runner.invoke(cli, ["resolve", "--excel", str(excel_path)])
+
+    assert result.exit_code == 0, result.output
+    assert json.loads(result.output)["mes"] == "Noviembre"
+
+
+def test_resolve_sin_month_nada_disponible_falla(runner, excel_path, monkeypatch):
+    _fijar_hoy(monkeypatch, datetime.date(2027, 6, 1))
+    result = runner.invoke(cli, ["resolve", "--excel", str(excel_path)])
+
+    assert result.exit_code != 0
+    assert "Generado" in result.output
+
+
+def test_mark_generated_sin_month_marca_el_mes_objetivo(runner, excel_path, monkeypatch):
+    _fijar_hoy(monkeypatch, datetime.date(2026, 9, 26))
+    result = runner.invoke(cli, ["mark-generated", "--excel", str(excel_path)])
+
+    assert result.exit_code == 0, result.output
+    assert json.loads(result.output)["fecha"] == "14/11/2026"
+    _, eventos = load_workbook(str(excel_path))
+    assert [e.estado for e in eventos][:2] == ["Generado", "Pendiente"]
+
+
+def test_mark_generated_repetido_sin_month_marca_el_siguiente(
+    runner, excel_path, monkeypatch
+):
+    _fijar_hoy(monkeypatch, datetime.date(2026, 9, 26))
+    runner.invoke(cli, ["mark-generated", "--excel", str(excel_path)])
+    result = runner.invoke(cli, ["mark-generated", "--excel", str(excel_path)])
+
+    assert result.exit_code == 0, result.output
+    assert json.loads(result.output)["fecha"] == "12/12/2026"
+
+
+def test_month_explicito_sobre_mes_generado_funciona(runner, excel_path, monkeypatch):
+    _fijar_hoy(monkeypatch, datetime.date(2026, 11, 3))
+    runner.invoke(cli, ["mark-generated", "--month", "Noviembre", "--excel", str(excel_path)])
+    result = runner.invoke(
+        cli, ["resolve", "--month", "Noviembre", "--excel", str(excel_path)]
+    )
+
+    assert result.exit_code == 0, result.output
+    assert json.loads(result.output)["mes"] == "Noviembre"
