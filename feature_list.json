@@ -10,7 +10,7 @@
   {
     "id": 2,
     "title": "Ejecutar /code-review sobre src/oncle_jack y tests (código existente sin auditar)",
-    "status": "pending",
+    "status": "done",
     "priority": "high",
     "complejidad": "baja",
     "depends_on": []
@@ -18,7 +18,7 @@
   {
     "id": 3,
     "title": "Verificación manual: oncle-jack resolve contra el Excel real (la hace el usuario, SPEC §9)",
-    "status": "pending",
+    "status": "done",
     "priority": "high",
     "complejidad": "media",
     "depends_on": [
@@ -37,7 +37,7 @@
   {
     "id": 4,
     "title": "Comprobar que el README documenta los tres comandos contra un Excel local (SPEC §9)",
-    "status": "pending",
+    "status": "done",
     "priority": "medium",
     "complejidad": "baja",
     "depends_on": []
