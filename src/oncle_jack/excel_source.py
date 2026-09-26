@@ -2,6 +2,7 @@ from pathlib import Path
 
 import openpyxl
 
+from oncle_jack.foto_url import validate_foto_url
 from oncle_jack.models import CalendarEntry, Comico, Event
 
 _MESES = [
@@ -17,14 +18,16 @@ def _mes_de_fecha(fecha: str) -> str:
     return _MESES[int(mes) - 1]
 
 
-def load_workbook(path: str | Path) -> tuple[list[CalendarEntry], list[Event]]:
+def load_workbook(path: str | Path, mes: str | None = None) -> tuple[list[CalendarEntry], list[Event]]:
+    """Carga calendario y eventos. Si se indica `mes`, valida las fotos de los
+    eventos de ese mes (SPEC 5.5); el resto de filas no se validan."""
     wb = openpyxl.load_workbook(path, data_only=True)
 
     calendario = []
-    for mes, sabor, tipo in wb["Calendario_Sabores"].iter_rows(min_row=2, values_only=True):
-        if mes is None:
+    for mes_cal, sabor, tipo in wb["Calendario_Sabores"].iter_rows(min_row=2, values_only=True):
+        if mes_cal is None:
             continue
-        calendario.append(CalendarEntry(mes=mes, sabor=sabor, fijo=bool(tipo and "Fijo" in tipo)))
+        calendario.append(CalendarEntry(mes=mes_cal, sabor=sabor, fijo=bool(tipo and "Fijo" in tipo)))
 
     eventos = []
     for row in wb["Eventos"].iter_rows(min_row=2, values_only=True):
@@ -37,6 +40,12 @@ def load_workbook(path: str | Path) -> tuple[list[CalendarEntry], list[Event]]:
             c3_nombre, c3_foto, c4_nombre, c4_foto,
             sabor_override, estado, _notas,
         ) = row[:15]
+        if mes is not None and _mes_de_fecha(fecha) == mes:
+            fotos = (c1_foto, c2_foto, c3_foto, c4_foto)
+            c1_foto, c2_foto, c3_foto, c4_foto = (
+                validate_foto_url(f, fecha, n, f"Comico_{n}_Foto_URL")
+                for n, f in enumerate(fotos, 1)
+            )
         comicos = [
             Comico(nombre=c1_nombre, foto_url=c1_foto),
             Comico(nombre=c2_nombre, foto_url=c2_foto),
