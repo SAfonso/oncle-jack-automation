@@ -1,3 +1,5 @@
+import datetime
+
 from oncle_jack.models import CalendarEntry, Event
 
 
@@ -47,3 +49,18 @@ def apply_override_swap(
         else:
             nuevo_calendario.append(c)
     return nuevo_calendario
+
+
+def mes_objetivo(eventos: list[Event], hoy: datetime.date) -> Event:
+    """Primer evento no Generado en o después del mes (año+mes) de `hoy`."""
+    clave_hoy = (hoy.year, hoy.month)
+    candidatos = sorted(
+        (e for e in eventos if (e.fecha.year, e.fecha.month) >= clave_hoy),
+        key=lambda e: e.fecha,
+    )
+    for e in candidatos:
+        if e.estado != "Generado":
+            return e
+    raise ValueError(
+        f"no hay ningún evento sin 'Generado' en o después de {hoy.month:02d}/{hoy.year}"
+    )
