@@ -14,6 +14,14 @@ código en `src/` se escribe sin un test en rojo primero.
 con Google Drive es la v2, pospuesta a propósito hasta confirmar que la
 lógica funciona bien en local (detalle en `SPEC.md`, sección 10).
 
+**Estado v1:** comandos `resolve` (`--month` opcional; sin él, mes objetivo
+automático con la fecha del sistema, SPEC 5.6), `reveal` y `mark-generated`.
+Validación de fotos Canva (SPEC 5.5) y de los 4 nombres solo en el evento
+del mes objetivo. Fechas: el Excel admite `datetime` real o texto
+`dd/mm/yyyy`; internamente `date`; el JSON sale en `dd/mm/yyyy`. La cabecera
+de la columna 7 de `Eventos` es `Comico_2_Nombre` (bug corregido). 95 tests,
+CI en GitHub Actions.
+
 ## Setup
 
 ```bash
@@ -58,3 +66,45 @@ src/oncle_jack/
 tests/
 SPEC.md           # especificación y criterios de aceptación
 ```
+
+## Flujo de generación en Canva
+
+Lo hace Claude con el MCP de Canva; el CLI solo entrega el JSON de
+`resolve`. Detalle en `SPEC.md`, sección 11.
+
+- Plantilla `Plantillas/<Sabor>` con dos diseños: Cartel (2 páginas) y Reel
+  (7 páginas). Carpeta destino: `OncleJack/26/27/<Sabor>-<Mes>`.
+- Cada `foto_url` es un shortlink `canva.link` a un diseño de Canva con un
+  marco de imagen: se resuelve con `resolve-shortlink`, se lee su `mediaId` +
+  `imageBox` y se aplica con `update_fill` + `crop_media`, escalando el
+  `imageBox` por (ancho del marco destino / ancho del marco origen).
+- Se genera un Cartel completo por cómico (4 diseños "Cartel k - <Nombre>"):
+  página 1 = tarjeta del cómico k; página 2 = lineup con el paso k de
+  revelado (1: solo el 1º visible; 2: 1º y 3º; 3: solo el 4º tapado; 4: los 4
+  visibles). Orden por tamaño de letra: `Comico_1..4` de menor a mayor (el 4º
+  es el cabeza de cartel). El Reel es uno solo.
+
+### Gotchas conocidos
+
+- `edit-design` solo permite operaciones de una página por llamada.
+- Guardar sobre una transacción abierta con una copia antigua puede pisar
+  cambios previos: verificar leyendo el contenido, no la miniatura (caché).
+- Una fecha larga ("4 Octubre") parte el texto: ensanchar el cuadro y
+  recolocar la hora.
+- Los blur con medidas exactas del texto dejan asomar ascendentes/
+  descendentes y pueden invadir la línea contigua o la fecha: ajustar a mano.
+- Las exportaciones (PNG/MP4) son descargas de Canva y no se pueden guardar
+  dentro de la carpeta de Canva.
+- La hora (19:00h) no sale del Excel.
+
+## Pendiente
+
+- Error explícito en `resolve` si el mes objetivo tiene el sabor vacío en
+  `Calendario_Sabores` (hoy daría `Plantillas/None`; pendiente de decisión).
+- Test directo del caso "mes actual Generado -> siguiente" (el actual depende
+  de que Diciembre esté vacío en el fixture).
+- Endurecer `validate_foto_url` (puertos/mayúsculas; mensaje sin
+  `www.canva.com`).
+- La hora del show no sale del Excel.
+- Fuera de alcance: flujo de bustos, ver `SPEC_BUSTOS.md`. v2 (Drive)
+  pospuesta.
