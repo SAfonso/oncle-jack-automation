@@ -6,6 +6,7 @@ import click
 
 from oncle_jack.calendar import apply_override_swap, resolve_sabor
 from oncle_jack.excel_source import load_workbook, mark_generated, save_calendar
+from oncle_jack.foto_url import validate_evento_objetivo
 from oncle_jack.models import Event
 from oncle_jack.reveal import reveal_state
 
@@ -65,10 +66,11 @@ def resolve(mes: str, override: str | None, excel: str | None):
     mes = _normalizar_mes(mes)
     ruta = _resolver_ruta_excel(excel)
     try:
-        calendario, eventos = load_workbook(ruta, mes=mes)
+        calendario, eventos = load_workbook(ruta)
+        evento = _buscar_evento(eventos, mes)
+        validate_evento_objetivo(evento)
     except ValueError as exc:
         raise click.ClickException(str(exc)) from exc
-    evento = _buscar_evento(eventos, mes)
 
     if override:
         try:
@@ -111,7 +113,10 @@ def reveal(step: int):
 def mark_generated_cmd(mes: str, excel: str | None):
     mes = _normalizar_mes(mes)
     ruta = _resolver_ruta_excel(excel)
-    _, eventos = load_workbook(ruta)
+    try:
+        _, eventos = load_workbook(ruta)
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
     evento = _buscar_evento(eventos, mes)
 
     mark_generated(ruta, evento)

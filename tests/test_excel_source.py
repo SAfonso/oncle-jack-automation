@@ -96,53 +96,53 @@ def test_fixture_sin_rastro_de_drive():
             assert not any("drive.google" in str(v) for v in row if v)
 
 
-def test_load_workbook_con_mes_valida_evento_valido(excel_path):
-    _, eventos = load_workbook(excel_path, mes="Noviembre")
-    assert eventos[0].comicos[0].foto_url == "https://canva.link/fixfoto1"
-
-
-@pytest.mark.parametrize(
-    "posicion,columna,col_idx,valor",
-    [
-        (1, "Comico_1_Foto_URL", 6, None),
-        (2, "Comico_2_Foto_URL", 8, "https://drive.google.com/uc?id=X"),
-        (3, "Comico_3_Foto_URL", 10, "http://canva.link/abc"),
-        (4, "Comico_4_Foto_URL", 12, "https://ejemplo.com/foto.png"),
-    ],
-)
-def test_load_workbook_con_mes_rechaza_foto_invalida(excel_path, posicion, columna, col_idx, valor):
+def test_load_workbook_no_valida_campos_de_ningun_evento(excel_path):
     wb = openpyxl.load_workbook(excel_path)
-    wb["Eventos"].cell(row=2, column=col_idx).value = valor
-    wb.save(excel_path)
-
-    with pytest.raises(ValueError) as exc:
-        load_workbook(excel_path, mes="Noviembre")
-    msg = str(exc.value)
-    assert "14/11/2026" in msg
-    assert f"comico {posicion}" in msg
-    assert columna in msg
-    assert repr(valor) in msg
-
-
-def test_load_workbook_sin_mes_no_valida_filas_futuras(excel_path):
-    wb = openpyxl.load_workbook(excel_path)
-    wb["Eventos"].cell(row=2, column=6).value = None
+    ws = wb["Eventos"]
+    ws.cell(row=2, column=6).value = "https://drive.google.com/uc?id=X"
+    ws.cell(row=2, column=5).value = None
     wb.save(excel_path)
 
     _, eventos = load_workbook(excel_path)
-    assert eventos[0].comicos[0].foto_url is None
+    assert eventos[0].comicos[0].foto_url == "https://drive.google.com/uc?id=X"
+    assert eventos[0].comicos[0].nombre is None
 
 
-def test_load_workbook_con_mes_ignora_fotos_vacias_de_otros_meses(excel_path):
+def test_load_workbook_filas_de_otros_meses_con_campos_vacios_no_fallan(excel_path):
+    _, eventos = load_workbook(excel_path)
+    assert len(eventos) == 2
+    assert eventos[1].comicos[0].nombre is None
+    assert eventos[1].comicos[0].foto_url is None
+    assert eventos[1].estado == "Pendiente"
+
+
+def test_load_workbook_estado_vacio_no_falla(excel_path):
     wb = openpyxl.load_workbook(excel_path)
-    ws = wb["Eventos"]
-    for c in range(1, 16):
-        ws.cell(row=3, column=c).value = ws.cell(row=2, column=c).value
-    ws.cell(row=3, column=1).value = "12/12/2026"
-    ws.cell(row=3, column=6).value = None
+    wb["Eventos"].cell(row=3, column=14).value = None
     wb.save(excel_path)
 
-    _, eventos = load_workbook(excel_path, mes="Noviembre")
+    _, eventos = load_workbook(excel_path)
+    assert eventos[1].estado is None
+
+
+def test_load_workbook_dos_eventos_mismo_anio_mes_lanza_valueerror(excel_path):
+    wb = openpyxl.load_workbook(excel_path)
+    wb["Eventos"].cell(row=3, column=1).value = "28/11/2026"
+    wb.save(excel_path)
+
+    with pytest.raises(ValueError) as exc:
+        load_workbook(excel_path)
+    msg = str(exc.value)
+    assert "14/11/2026" in msg
+    assert "28/11/2026" in msg
+
+
+def test_load_workbook_mismo_mes_distinto_anio_es_valido(excel_path):
+    wb = openpyxl.load_workbook(excel_path)
+    wb["Eventos"].cell(row=3, column=1).value = "14/11/2027"
+    wb.save(excel_path)
+
+    _, eventos = load_workbook(excel_path)
     assert len(eventos) == 2
 
 
