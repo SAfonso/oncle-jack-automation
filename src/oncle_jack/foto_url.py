@@ -42,7 +42,7 @@ def validate_evento_objetivo(evento: Event) -> Event:
 
     # Validar nombres no vacíos
     for posicion, comico in enumerate(evento.comicos, start=1):
-        if not comico.nombre.strip():
+        if not (comico.nombre or "").strip():
             raise ValueError(
                 f"nombre vacío en evento {fecha_str}, comico {posicion}, "
                 f"columna Comico_{posicion}_Nombre"

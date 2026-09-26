@@ -219,3 +219,24 @@ def test_evento_objetivo_foto_invalida_posicion_3():
     assert "15/11/2026" in msg
     assert "3" in msg
     assert "Comico_3_Foto_URL" in msg
+
+
+def test_evento_objetivo_nombre_none_lanza_valueerror():
+    evento = Event(
+        fecha=datetime.date(2026, 12, 12),
+        mes="Diciembre",
+        lugar="X",
+        mc_1="A",
+        mc_2="B",
+        comicos=[
+            Comico(None, None),
+            Comico("Cómico 2", "https://canva.link/abc2"),
+            Comico("Cómico 3", "https://canva.link/abc3"),
+            Comico("Cómico 4", "https://canva.link/abc4"),
+        ],
+        sabor_override=None,
+        estado="Pendiente",
+    )
+    with pytest.raises(ValueError) as exc:
+        validate_evento_objetivo(evento)
+    assert "Comico_1_Nombre" in str(exc.value)

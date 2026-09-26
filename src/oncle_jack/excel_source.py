@@ -3,7 +3,6 @@ from pathlib import Path
 
 import openpyxl
 
-from oncle_jack.foto_url import validate_foto_url
 from oncle_jack.models import CalendarEntry, Comico, Event
 
 _MESES = [
@@ -34,9 +33,9 @@ def _mes_de_fecha(fecha: datetime.date) -> str:
     return _MESES[fecha.month - 1]
 
 
-def load_workbook(path: str | Path, mes: str | None = None) -> tuple[list[CalendarEntry], list[Event]]:
-    """Carga calendario y eventos. Si se indica `mes`, valida las fotos de los
-    eventos de ese mes (SPEC 5.5); el resto de filas no se validan."""
+def load_workbook(path: str | Path) -> tuple[list[CalendarEntry], list[Event]]:
+    """Carga calendario y eventos sin validar campos (SPEC 5.4). Solo falla por
+    fechas invalidas o dos eventos en el mismo año+mes."""
     wb = openpyxl.load_workbook(path, data_only=True)
 
     calendario = []
@@ -46,6 +45,7 @@ def load_workbook(path: str | Path, mes: str | None = None) -> tuple[list[Calend
         calendario.append(CalendarEntry(mes=mes_cal, sabor=sabor, fijo=bool(tipo and "Fijo" in tipo)))
 
     eventos = []
+    por_mes: dict[tuple[int, int], datetime.date] = {}
     for n_fila, row in enumerate(wb["Eventos"].iter_rows(min_row=2, values_only=True), start=2):
         if all(v is None for v in row):
             continue
@@ -56,12 +56,13 @@ def load_workbook(path: str | Path, mes: str | None = None) -> tuple[list[Calend
             c3_nombre, c3_foto, c4_nombre, c4_foto,
             sabor_override, estado, _notas,
         ) = row[:15]
-        if mes is not None and _mes_de_fecha(fecha) == mes:
-            fotos = (c1_foto, c2_foto, c3_foto, c4_foto)
-            c1_foto, c2_foto, c3_foto, c4_foto = (
-                validate_foto_url(f, fecha.strftime("%d/%m/%Y"), n, f"Comico_{n}_Foto_URL")
-                for n, f in enumerate(fotos, 1)
+        previa = por_mes.get((fecha.year, fecha.month))
+        if previa is not None:
+            raise ValueError(
+                f"dos eventos en el mismo mes: {previa.strftime('%d/%m/%Y')} y "
+                f"{fecha.strftime('%d/%m/%Y')} (fila {n_fila} de Eventos); solo se permite uno por mes"
             )
+        por_mes[(fecha.year, fecha.month)] = fecha
         comicos = [
             Comico(nombre=c1_nombre, foto_url=c1_foto),
             Comico(nombre=c2_nombre, foto_url=c2_foto),

@@ -218,3 +218,41 @@ def test_mark_generated_json_fecha_dd_mm_yyyy_con_fila_datetime(runner, excel_pa
     assert json.loads(result.output)["fecha"] == "12/12/2026"
     _, eventos = load_workbook(excel_path)
     assert eventos[1].estado == "Generado"
+
+
+def test_resolve_mes_valido_ok_aunque_otros_meses_tengan_campos_vacios(runner, excel_path):
+    # El fixture ya trae Diciembre con nombres/fotos vacios.
+    result = runner.invoke(
+        cli, ["resolve", "--month", "Noviembre", "--excel", str(excel_path)]
+    )
+    assert result.exit_code == 0, result.output
+
+
+def test_resolve_mes_con_nombre_vacio_falla_con_fecha_posicion_columna(runner, excel_path):
+    result = runner.invoke(
+        cli, ["resolve", "--month", "Diciembre", "--excel", str(excel_path)]
+    )
+    assert result.exit_code != 0
+    assert result.exception is None or isinstance(result.exception, SystemExit)
+    assert "12/12/2026" in result.output
+    assert "comico 1" in result.output
+    assert "Comico_1_Nombre" in result.output
+    assert "Traceback" not in result.output
+
+
+def test_resolve_override_no_persiste_si_evento_invalido(runner, excel_path):
+    antes, _ = load_workbook(excel_path)
+    result = runner.invoke(
+        cli,
+        ["resolve", "--month", "Diciembre", "--override", "Blue", "--excel", str(excel_path)],
+    )
+    assert result.exit_code != 0
+    despues, _ = load_workbook(excel_path)
+    assert antes == despues
+
+
+def test_mark_generated_no_valida_nombres_vacios(runner, excel_path):
+    result = runner.invoke(
+        cli, ["mark-generated", "--month", "Diciembre", "--excel", str(excel_path)]
+    )
+    assert result.exit_code == 0, result.output

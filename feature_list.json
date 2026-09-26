@@ -286,7 +286,7 @@
   {
     "id": 22,
     "title": "mes_objetivo(eventos, hoy) pura: selección automática del mes",
-    "status": "pending",
+    "status": "done",
     "priority": "high",
     "complejidad": "media",
     "depends_on": [

@@ -66,6 +66,15 @@
       "depends_on": [
         19
       ]
+    },
+    {
+      "id": 22,
+      "status": "done",
+      "resumen": "mes_objetivo(eventos, hoy) pura en calendar.py: filtra por (año,mes)>=hoy, ordena por fecha, primero no Generado; Estado vacio=no Generado; ValueError si ninguno; 10 tests, suite 85 passed; PR #7 mergeado, CI verde.",
+      "scope": "mes-objetivo",
+      "depends_on": [
+        19
+      ]
     }
   ]
 }
