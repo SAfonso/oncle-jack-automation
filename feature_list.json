@@ -193,7 +193,7 @@
   {
     "id": 14,
     "title": "Reformular la restricción 'sin credenciales / v1 solo local' (CHECKPOINTS.md y CLAUDE.md)",
-    "status": "pending",
+    "status": "done",
     "priority": "high",
     "complejidad": "baja",
     "depends_on": [],

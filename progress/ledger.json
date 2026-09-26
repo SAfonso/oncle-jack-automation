@@ -125,6 +125,13 @@
       "status": "done",
       "resumen": "README ya documentaba resolve/reveal/mark-generated; añadida una linea sobre EXCEL_PATH en .env para omitir --excel. Reviewer aprobado, 95 tests verdes.",
       "scope": "docs"
+    },
+    {
+      "id": 14,
+      "status": "done",
+      "resumen": "CHECKPOINTS.md linea 18 reformulada: 'Sin credenciales en la v1 de carteles; los bustos usan solo variable de entorno (ANTHROPIC_API_KEY), nunca en el repo. v1 solo local, Drive es v2.' Reviewer aprobado; CLAUDE.md sin tocar.",
+      "scope": "docs",
+      "spec_ref": "SPEC_BUSTOS §5, §9"
     }
   ]
 }
