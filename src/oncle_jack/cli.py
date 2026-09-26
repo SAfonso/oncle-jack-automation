@@ -1,10 +1,11 @@
+import datetime
 import json
 import os
 from pathlib import Path
 
 import click
 
-from oncle_jack.calendar import apply_override_swap, resolve_sabor
+from oncle_jack.calendar import apply_override_swap, mes_objetivo, resolve_sabor
 from oncle_jack.excel_source import load_workbook, mark_generated, save_calendar
 from oncle_jack.foto_url import validate_evento_objetivo
 from oncle_jack.models import Event
@@ -43,6 +44,20 @@ def _buscar_evento(eventos: list[Event], mes: str) -> Event:
     return evento
 
 
+def _hoy() -> datetime.date:
+    """Único punto de acceso a la fecha del sistema (monkeypatchable en tests)."""
+    return datetime.date.today()
+
+
+def _elegir_evento(eventos: list[Event], mes: str | None) -> Event:
+    if mes is not None:
+        return _buscar_evento(eventos, _normalizar_mes(mes))
+    try:
+        return mes_objetivo(eventos, _hoy())
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
+
+
 def _evento_a_dict(evento: Event) -> dict:
     return {
         "fecha": evento.fecha.strftime("%d/%m/%Y"),
@@ -59,15 +74,18 @@ def cli():
 
 
 @cli.command()
-@click.option("--month", "mes", required=True, help="Mes a resolver, p. ej. Noviembre")
+@click.option(
+    "--month", "mes", default=None,
+    help="Mes a resolver, p. ej. Noviembre (por defecto, el mes objetivo según la fecha de hoy)",
+)
 @click.option("--override", default=None, help="Fuerza este sabor e intercambia en el calendario")
 @click.option("--excel", default=None, help="Ruta al .xlsx local (o define EXCEL_PATH en .env)")
-def resolve(mes: str, override: str | None, excel: str | None):
-    mes = _normalizar_mes(mes)
+def resolve(mes: str | None, override: str | None, excel: str | None):
     ruta = _resolver_ruta_excel(excel)
     try:
         calendario, eventos = load_workbook(ruta)
-        evento = _buscar_evento(eventos, mes)
+        evento = _elegir_evento(eventos, mes)
+        mes = evento.mes
         validate_evento_objetivo(evento)
     except ValueError as exc:
         raise click.ClickException(str(exc)) from exc
@@ -108,16 +126,19 @@ def reveal(step: int):
 
 
 @cli.command(name="mark-generated")
-@click.option("--month", "mes", required=True, help="Mes cuyo evento marcar como Generado")
+@click.option(
+    "--month", "mes", default=None,
+    help="Mes cuyo evento marcar como Generado (por defecto, el mes objetivo según hoy)",
+)
 @click.option("--excel", default=None, help="Ruta al .xlsx local (o define EXCEL_PATH en .env)")
-def mark_generated_cmd(mes: str, excel: str | None):
-    mes = _normalizar_mes(mes)
+def mark_generated_cmd(mes: str | None, excel: str | None):
     ruta = _resolver_ruta_excel(excel)
     try:
         _, eventos = load_workbook(ruta)
     except ValueError as exc:
         raise click.ClickException(str(exc)) from exc
-    evento = _buscar_evento(eventos, mes)
+    evento = _elegir_evento(eventos, mes)
+    mes = evento.mes
 
     mark_generated(ruta, evento)
 

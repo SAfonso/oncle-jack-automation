@@ -27,6 +27,7 @@ Excel.
 ## Comandos
 
 ```bash
+# --month es opcional: sin él se usa el mes objetivo (SPEC 5.6, fecha del sistema)
 oncle-jack resolve --month noviembre --excel ./datos_carteles_oncle_jack.xlsx [--override Blue]
 oncle-jack reveal --step 2
 oncle-jack mark-generated --month noviembre --excel ./datos_carteles_oncle_jack.xlsx
