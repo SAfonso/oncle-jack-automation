@@ -166,8 +166,8 @@ resuelve esa URL con el MCP de Canva (p. ej. `resolve-shortlink`); el CLI
 
 - El campo se sigue llamando `foto_url` (modelo y JSON de `resolve`); solo
   cambia lo que se espera encontrar en él.
-- `excel_source` valida `foto_url` de cada cómico al cargar un evento y
-  acepta únicamente URLs `https` cuyo host sea `canva.link` o `canva.com`
+- `resolve` valida `foto_url` de cada cómico del evento objetivo (no
+  `load_workbook`) y acepta únicamente URLs `https` cuyo host sea `canva.link` o `canva.com`
   (incluye `www.canva.com`). Cualquier otra cosa (Drive, otros dominios,
   texto suelto) se rechaza.
 - **Alcance:** esta validación se aplica SOLO al evento del mes objetivo
@@ -257,6 +257,7 @@ contra `main`. La suite completa no necesita red ni variables de entorno
 
 ## 10. v2 (pospuesta) — Google Drive
 
+
 Una vez v1 esté verificado en local, `excel_source.py` pasa a leer/escribir
 el `.xlsx` desde Google Drive en lugar de disco, manteniendo exactamente
 la misma interfaz (`load_workbook`, `save_calendar`, `mark_generated`) —
@@ -266,3 +267,37 @@ que no saben ni les importa de dónde viene el Excel.
 Cuando llegue ese momento: cuenta de servicio de Google con acceso al
 archivo, `GOOGLE_APPLICATION_CREDENTIALS` y `EXCEL_FILE_ID` como secretos
 (`.env` en local, *secrets* de GitHub en CI) — nunca en código ni commits.
+
+## 11. Flujo de generación en Canva (fuera del CLI)
+
+Lo ejecuta Claude con el MCP de Canva; el CLI solo entrega el JSON de
+`resolve` (y `reveal`). Aquí se documenta lo aprendido en la prueba de
+octubre; no hay código ni tests asociados.
+
+- **Plantilla:** `Plantillas/<Sabor>` contiene dos diseños: "Cartel"
+  (2 páginas) y "Reel" (7 páginas). Destino: `OncleJack/26/27/<Sabor>-<Mes>`.
+- **Fotos:** cada `foto_url` es un shortlink `canva.link` a un DISEÑO de
+  Canva que contiene un marco de imagen. Se resuelve con `resolve-shortlink`,
+  se lee su `mediaId` + `imageBox` y se aplica a la plantilla con
+  `update_fill` + `crop_media`, escalando el `imageBox` por (ancho del marco
+  destino / ancho del marco origen).
+- **Un Cartel por cómico:** se generan 4 diseños "Cartel k - <Nombre>".
+  Página 1 = tarjeta individual del cómico k; página 2 = lineup con el paso k
+  de revelado (paso 1: solo el 1º visible; paso 2: 1º y 3º línea visibles;
+  paso 3: solo el 4º tapado; paso 4: los 4 visibles). Orden por tamaño de
+  letra del lineup: `Comico_1..4` de menor a mayor, el 4º es el cabeza de
+  cartel. El Reel es uno solo.
+- **Gotchas conocidos:**
+  - `edit-design` solo admite operaciones de una página por llamada.
+  - Guardar (commit) sobre una transacción abierta con una copia antigua
+    puede pisar cambios previos: verificar tras guardar leyendo el contenido,
+    no la miniatura (puede ser caché).
+  - Una fecha más larga ("4 Octubre") parte el texto: ensanchar el cuadro y
+    recolocar la hora.
+  - Los rectángulos de blur con las medidas EXACTAS del texto dejan asomar
+    ascendentes/descendentes y pueden invadir la línea contigua o la fecha:
+    ajustarlos a mano.
+  - Las exportaciones (PNG/MP4) son descargas de Canva; no se pueden guardar
+    dentro de la carpeta de Canva.
+  - La hora (19:00h) no sale del Excel.
+- Fuera de alcance: bustos, ver `SPEC_BUSTOS.md`.
