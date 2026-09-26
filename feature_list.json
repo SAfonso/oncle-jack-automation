@@ -249,7 +249,7 @@
   {
     "id": 19,
     "title": "Fechas: Event.fecha pasa a datetime.date (Excel datetime o texto dd/mm/yyyy)",
-    "status": "pending",
+    "status": "done",
     "priority": "high",
     "complejidad": "media",
     "depends_on": [

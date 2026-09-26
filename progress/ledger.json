@@ -48,6 +48,15 @@
       "depends_on": [
         16
       ]
+    },
+    {
+      "id": 19,
+      "status": "done",
+      "resumen": "Event.fecha=datetime.date; parse_fecha acepta datetime/date y texto dd/mm/yyyy (otro -> ValueError fila+valor); mark_generated compara como date; JSON dd/mm/yyyy; filas con datos sin fecha -> ValueError; suite 68 passed; PR #5 mergeado, CI verde.",
+      "scope": "fechas",
+      "depends_on": [
+        17
+      ]
     }
   ]
 }
