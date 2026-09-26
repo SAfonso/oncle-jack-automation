@@ -220,7 +220,7 @@
   {
     "id": 17,
     "title": "Fotos Canva: resolve sale con exit != 0 y mensaje explícito ante foto_url inválida",
-    "status": "pending",
+    "status": "done",
     "priority": "high",
     "complejidad": "baja",
     "depends_on": [
