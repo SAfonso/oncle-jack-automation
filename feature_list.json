@@ -237,7 +237,7 @@
   {
     "id": 18,
     "title": "Fotos Canva: actualizar el Excel real (cabecera Comico_2_Nombre y URLs de Canva)",
-    "status": "pending",
+    "status": "done",
     "priority": "medium",
     "complejidad": "baja",
     "depends_on": [

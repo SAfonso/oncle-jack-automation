@@ -1,3 +1,4 @@
+import datetime
 from dataclasses import dataclass
 
 
@@ -16,7 +17,7 @@ class Comico:
 
 @dataclass
 class Event:
-    fecha: str
+    fecha: datetime.date
     mes: str
     lugar: str
     mc_1: str

@@ -44,7 +44,7 @@ def _buscar_evento(eventos: list[Event], mes: str) -> Event:
 
 def _evento_a_dict(evento: Event) -> dict:
     return {
-        "fecha": evento.fecha,
+        "fecha": evento.fecha.strftime("%d/%m/%Y"),
         "lugar": evento.lugar,
         "mc_1": evento.mc_1,
         "mc_2": evento.mc_2,
@@ -116,5 +116,5 @@ def mark_generated_cmd(mes: str, excel: str | None):
 
     mark_generated(ruta, evento)
 
-    resultado = {"mes": mes, "fecha": evento.fecha, "estado": "Generado"}
+    resultado = {"mes": mes, "fecha": evento.fecha.strftime("%d/%m/%Y"), "estado": "Generado"}
     click.echo(json.dumps(resultado, ensure_ascii=False))
