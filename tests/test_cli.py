@@ -129,3 +129,82 @@ def test_resolve_mes_sin_evento_falla(runner, excel_path):
     )
 
     assert result.exit_code != 0
+
+
+def test_resolve_foto_invalida_drive_url_falla(runner, excel_path):
+    """Modifica fixture: cambia foto del cómico 1 a una URL de Drive (inválida).
+    resolve debe salir con exit != 0 y mensaje con fecha, posición, columna y valor."""
+    import openpyxl
+
+    # Modificar el fixture temporal: reemplazar foto del cómico 1 por Drive URL
+    wb = openpyxl.load_workbook(excel_path)
+    ws = wb["Eventos"]
+    ws["F2"].value = "https://drive.google.com/uc?id=invalid"  # Comico_1_Foto_URL (col F = 6)
+    wb.save(excel_path)
+
+    result = runner.invoke(
+        cli, ["resolve", "--month", "Noviembre", "--excel", str(excel_path)]
+    )
+
+    assert result.exit_code != 0
+    # Verificar que el error contiene fecha, posición, columna y valor inválido
+    assert "14/11/2026" in result.output  # fecha del evento
+    assert "Comico_1_Foto_URL" in result.output  # columna
+    assert "drive.google.com" in result.output  # valor inválido
+
+
+def test_resolve_foto_vacia_falla(runner, excel_path):
+    """Modifica fixture: deja vacía la foto del cómico 2.
+    resolve debe salir con exit != 0 y mensaje con fecha, posición, columna y valor."""
+    import openpyxl
+
+    wb = openpyxl.load_workbook(excel_path)
+    ws = wb["Eventos"]
+    ws["H2"].value = None  # Comico_2_Foto_URL (col H = 8)
+    wb.save(excel_path)
+
+    result = runner.invoke(
+        cli, ["resolve", "--month", "Noviembre", "--excel", str(excel_path)]
+    )
+
+    assert result.exit_code != 0
+    assert "14/11/2026" in result.output  # fecha del evento
+    assert "Comico_2_Foto_URL" in result.output  # columna
+    assert "2" in result.output  # posición (cómico 2)
+
+
+def test_resolve_foto_valida_contiene_canva_link_en_json(runner, excel_path):
+    """Con fixture válido (sin modificar), resolve sale con exit 0 y JSON
+    contiene foto_url con canva.link."""
+    result = runner.invoke(
+        cli, ["resolve", "--month", "Noviembre", "--excel", str(excel_path)]
+    )
+
+    assert result.exit_code == 0, result.output
+    data = json.loads(result.output)
+    # Verificar que al menos uno de los cómicos tiene foto_url con canva.link
+    fotos = [c["foto_url"] for c in data["evento"]["comicos"]]
+    assert any("canva.link" in f or "canva.com" in f for f in fotos), f"Ninguna foto contiene URL canva: {fotos}"
+
+
+def test_mark_generated_funciona_con_foto_invalida(runner, excel_path):
+    """mark-generated NO debe validar fotos. Incluso con foto inválida,
+    debe marcar el evento como Generado sin error."""
+    import openpyxl
+
+    # Modificar el fixture temporal: reemplazar foto del cómico 1 por Drive URL
+    wb = openpyxl.load_workbook(excel_path)
+    ws = wb["Eventos"]
+    ws["F2"].value = "https://drive.google.com/uc?id=invalid"  # Comico_1_Foto_URL (col F = 6)
+    wb.save(excel_path)
+
+    result = runner.invoke(
+        cli, ["mark-generated", "--month", "Noviembre", "--excel", str(excel_path)]
+    )
+
+    # mark-generated NO debe fallar por foto inválida
+    assert result.exit_code == 0, result.output
+
+    # Verificar que el evento fue marcado como Generado
+    _, eventos = load_workbook(excel_path)
+    assert eventos[0].estado == "Generado"
