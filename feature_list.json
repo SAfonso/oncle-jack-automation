@@ -2,7 +2,7 @@
   {
     "id": 1,
     "title": "Verificar que el workflow tests.yml pasa en verde en GitHub Actions",
-    "status": "pending",
+    "status": "done",
     "priority": "high",
     "complejidad": "baja",
     "depends_on": []
@@ -22,7 +22,11 @@
     "priority": "high",
     "complejidad": "media",
     "depends_on": [
-      1
+      1,
+      15,
+      16,
+      17,
+      18
     ]
   },
   {
@@ -190,5 +194,51 @@
     "depends_on": [],
     "spec_ref": "SPEC_BUSTOS §5, §9",
     "descripcion": "Solo reformula la restricción, sin otros cambios. Redacción confirmada por Sergio: 'sin credenciales en la v1 de carteles; los bustos usan solo variable de entorno (ANTHROPIC_API_KEY), nunca en el repo'. En CHECKPOINTS.md sustituye la línea 'Sin credenciales, v1 solo local, Drive es v2.' conservando 'Drive es v2'. CLAUDE.md hoy no contiene esa frase: solo se toca si aparece la restricción; no mezclar los cambios sin commitear de Sergio en CLAUDE.md en el commit (coordinar con integrator, árbol limpio). Verificable por lectura. Adelantada a petición de Sergio; no depende de 1-4."
+  },
+  {
+    "id": 15,
+    "title": "Fotos Canva: validador puro validate_foto_url",
+    "status": "pending",
+    "priority": "high",
+    "complejidad": "media",
+    "depends_on": [],
+    "spec_ref": "SPEC §5.5",
+    "descripcion": "TDD. Función pura validate_foto_url(valor, fecha, posicion, columna)->str en src/oncle_jack/ (módulo nuevo o excel_source, sin I/O ni red ni dependencias). Acepta solo https con host canva.link, canva.com o www.canva.com (host comparado exacto: rechazar canva.com.evil.com, userinfo tipo canva.com@x.com, http, drive.google.com, texto suelto, None, vacío, solo espacios). ValueError con fecha, posición (1-4), columna y valor recibido. Tests: válidas (canva.link/..., www.canva.com/design/...), inválidas por cada caso y aserción del contenido del mensaje. NO toca excel_source, CLI ni Excel."
+  },
+  {
+    "id": 16,
+    "title": "Fotos Canva: excel_source (cabecera Comico_2_Nombre, validación del evento) y fixture",
+    "status": "pending",
+    "priority": "high",
+    "complejidad": "media",
+    "depends_on": [
+      15
+    ],
+    "spec_ref": "SPEC §5.5",
+    "descripcion": "TDD. Al cargar el evento aplica validate_foto_url a los 4 foto_url (columnas Comico_N_Foto_URL, posiciones 1-4). Decisión de diseño a cumplir: validar solo el evento que se resuelve/selecciona, NO todas las filas de Eventos (el Excel real tiene filas futuras con fotos vacías y load_workbook no debe fallar por ellas; ver cómo lo usa cli.resolve). Cabecera de la col. 7 = Comico_2_Nombre (el cargador ya lee por posición; el test comprueba nombre del 2º cómico y, si procede, la cabecera del fixture). Actualiza tests/fixtures/datos_ejemplo.xlsx: 4 columnas de foto con URLs canva.link, sin rastro de Drive, y col. 7 = Comico_2_Nombre. Tests en tests/test_excel_source.py: evento válido carga; foto vacía / de Drive / http / dominio ajeno -> ValueError con fecha, posición, columna y valor. Ajusta tests existentes que asuman URLs de Drive. Una línea en README si menciona el formato de foto. NO toca cli.py salvo que un test existente lo obligue, ni el Excel real."
+  },
+  {
+    "id": 17,
+    "title": "Fotos Canva: resolve sale con exit != 0 y mensaje explícito ante foto_url inválida",
+    "status": "pending",
+    "priority": "high",
+    "complejidad": "baja",
+    "depends_on": [
+      16
+    ],
+    "spec_ref": "SPEC §5.5",
+    "descripcion": "TDD. Test en tests/test_cli.py: fixture temporal con foto de Drive/vacía en un evento -> oncle-jack resolve exit != 0 y stderr/salida con fecha, posición, columna y valor; con fixture válido el JSON contiene foto_url canva.link. Si el ValueError de la tarea 16 ya se traduce a exit != 0 el entregable es solo el test; si no, capturar ValueError en cli.resolve y convertirlo en click.ClickException (sin traceback). No pasa nunca el valor inválido en silencio. NO toca excel_source."
+  },
+  {
+    "id": 18,
+    "title": "Fotos Canva: actualizar el Excel real (cabecera Comico_2_Nombre y URLs de Canva)",
+    "status": "pending",
+    "priority": "medium",
+    "complejidad": "baja",
+    "depends_on": [
+      16
+    ],
+    "spec_ref": "SPEC §5.5",
+    "descripcion": "Mecánico con openpyxl sobre datos_carteles_oncle_jack.xlsx (hoja Eventos): col. 7 'Cómico' -> 'Comico_2_Nombre'; fila EJEMPLO: sustituir las 4 URLs drive.google.com/uc?id=EJEMPLOn por URLs de Canva con formato válido (placeholder https://canva.link/... marcado como EJEMPLO; las reales las pone el usuario, la fila EJEMPLO no basta para generar carteles reales). Sin URLs de Drive en el fichero. Nota para el revisor: la fila EJEMPLO tiene Fecha como datetime y otras filas como str dd/mm/yy o dd/mm/yyyy; _mes_de_fecha espera str dd/mm/yyyy, así que resolve contra el Excel real puede fallar: NO se corrige aquí, se anota para la verificación manual (tarea 3). Verificable: script/lectura de cabeceras y test opcional. Conservar el resto de hojas y formato. NO toca src ni bustos."
   }
 ]

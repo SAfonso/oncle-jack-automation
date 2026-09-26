@@ -41,7 +41,7 @@ pueda probar sin IA ni APIs externas de diseño, se prueba aquí.
 - Cualquier llamada a la API/MCP de Canva.
 - Google Drive — v2, ver sección 10.
 - Descarga o procesado de las fotos de los cómicos (se pasan las URLs
-  ya editadas, tal cual).
+  de Canva ya editadas, tal cual; ver 5.5).
 - Interfaz gráfica; esto es un CLI.
 
 ## 3. Arquitectura
@@ -73,7 +73,7 @@ class CalendarEntry:
 @dataclass
 class Comico:
     nombre: str
-    foto_url: str
+    foto_url: str        # URL de documento de Canva (ver 5.5)
 
 @dataclass
 class Event:
@@ -142,6 +142,32 @@ Cada bloque de aquí abajo es (como mínimo) un test en `tests/`.
   archivo temporal antes de cada test, para no mutar el fixture) — nunca
   el Excel real del usuario.
 
+### 5.5 Fotos de los cómicos: URLs de Canva (`foto_url`)
+
+Las columnas `Comico_N_Foto_URL` de la hoja `Eventos` ya no contienen
+enlaces de Google Drive: contienen la URL de un documento de Canva. Ejemplo
+válido: `https://canva.link/zyxvd0tfeqmde4l` (shortlink de Canva). Claude
+resuelve esa URL con el MCP de Canva (p. ej. `resolve-shortlink`); el CLI
+**no** llama a Canva ni añade dependencias.
+
+- El campo se sigue llamando `foto_url` (modelo y JSON de `resolve`); solo
+  cambia lo que se espera encontrar en él.
+- `excel_source` valida `foto_url` de cada cómico al cargar un evento y
+  acepta únicamente URLs `https` cuyo host sea `canva.link` o `canva.com`
+  (incluye `www.canva.com`). Cualquier otra cosa (Drive, otros dominios,
+  texto suelto) se rechaza.
+- Si `foto_url` está vacío o no es válido, se lanza un `ValueError` explícito
+  que indica evento (fecha), posición del cómico (1-4), columna y valor
+  recibido. `resolve` sale con exit != 0 y ese mensaje; nunca pasa el valor
+  inválido en silencio.
+- La cabecera de la columna 7 de `Eventos` pasa de `Cómico` a
+  `Comico_2_Nombre` (corrección del Excel real y del fixture); el cargador
+  lee el nombre del 2º cómico de esa columna.
+- El Excel real y `tests/fixtures/datos_ejemplo.xlsx` pasan a usar URLs de
+  Canva en las 4 columnas de foto. Ninguna URL de Drive debe quedar.
+- Fuera de alcance: cualquier cosa de bustos (`SPEC_BUSTOS.md`); son flujos
+  distintos y no se mezclan.
+
 ## 6. CLI — comandos
 
 ```
@@ -155,7 +181,7 @@ archivo), carga el evento de ese mes, y devuelve por stdout un JSON:
   "sabor": "Blue",
   "carpeta_plantilla": "Plantillas/Blue",
   "evento": { "fecha": "...", "lugar": "...", "mc_1": "...", "mc_2": "...",
-              "comicos": [ {"nombre": "...", "foto_url": "..."}, ... ] }
+              "comicos": [ {"nombre": "...", "foto_url": "https://canva.link/..."}, ... ] }
 }
 ```
 
