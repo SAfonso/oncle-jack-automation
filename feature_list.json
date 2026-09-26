@@ -298,7 +298,7 @@
   {
     "id": 23,
     "title": "--month opcional en resolve y mark-generated (hoy del sistema, inyectable en tests)",
-    "status": "pending",
+    "status": "done",
     "priority": "high",
     "complejidad": "media",
     "depends_on": [
