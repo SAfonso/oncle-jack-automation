@@ -64,7 +64,10 @@ def cli():
 def resolve(mes: str, override: str | None, excel: str | None):
     mes = _normalizar_mes(mes)
     ruta = _resolver_ruta_excel(excel)
-    calendario, eventos = load_workbook(ruta)
+    try:
+        calendario, eventos = load_workbook(ruta, mes=mes)
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
     evento = _buscar_evento(eventos, mes)
 
     if override:

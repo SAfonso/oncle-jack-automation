@@ -12,6 +12,15 @@
       "status": "done",
       "resumen": "validate_foto_url en src/oncle_jack/foto_url.py; 15 tests, suite 41 passed; reviewer aprobado; PR #1 mergeado, CI verde. Nota no bloqueante: acepta puertos y host en mayusculas (spec no dice nada).",
       "scope": "fotos-canva"
+    },
+    {
+      "id": 16,
+      "status": "done",
+      "resumen": "load_workbook(path, mes=None) valida las 4 fotos Canva solo del evento del mes; fixture con canva.link; suite 50 passed; PR #2 mergeado, CI verde. Aviso: con mes informado _mes_de_fecha se aplica a todas las filas (riesgo con fechas mixtas del Excel real). cli.resolve aun no pasa mes (tarea 17).",
+      "scope": "fotos-canva",
+      "depends_on": [
+        15
+      ]
     }
   ]
 }

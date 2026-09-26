@@ -208,7 +208,7 @@
   {
     "id": 16,
     "title": "Fotos Canva: excel_source (cabecera Comico_2_Nombre, validación del evento) y fixture",
-    "status": "pending",
+    "status": "done",
     "priority": "high",
     "complejidad": "media",
     "depends_on": [
