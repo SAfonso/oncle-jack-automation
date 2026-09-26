@@ -95,6 +95,36 @@
         21,
         22
       ]
+    },
+    {
+      "id": 3,
+      "status": "done",
+      "resumen": "Verificacion manual de resolve contra el Excel real: exit 0, Octubre/Original/04/10/2026, 4 comicos con canva.link; resolve --month Noviembre falla con error claro (nombre vacio, 15/11/2026, Comico_1_Nombre); Excel real intacto (md5 a6c670cf...). Ejecutada por coordinador a peticion del usuario y re-verificada por reviewer sobre copia.",
+      "scope": "verificacion",
+      "depends_on": [
+        1,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ]
+    },
+    {
+      "id": 2,
+      "status": "done",
+      "resumen": "Auditoria /code-review de src/oncle_jack y tests (95 tests verdes). Hallazgos: (1) CalendarEntry.sabor admite None (mes con sabor vacio en Calendario_Sabores) y resolve produciria 'Plantillas/None' -> requiere decision de spec (error explicito); (2) mensaje de validate_foto_url omite www.canva.com (trivial); (3) try/except ValueError de urlsplit posiblemente inalcanzable (cosmetico). Sin tareas nuevas creadas: pendiente decision del usuario.",
+      "scope": "auditoria"
+    },
+    {
+      "id": 4,
+      "status": "done",
+      "resumen": "README ya documentaba resolve/reveal/mark-generated; añadida una linea sobre EXCEL_PATH en .env para omitir --excel. Reviewer aprobado, 95 tests verdes.",
+      "scope": "docs"
     }
   ]
 }

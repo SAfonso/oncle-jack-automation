@@ -35,6 +35,8 @@ oncle-jack mark-generated --month noviembre --excel ./datos_carteles_oncle_jack.
 
 `reveal` es puro (sin I/O) — no necesita `--excel`.
 
+Si defines `EXCEL_PATH` en `.env`, puedes omitir `--excel` en `resolve` y `mark-generated`.
+
 ## Tests
 
 ```bash
