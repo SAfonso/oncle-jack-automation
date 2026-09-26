@@ -15,7 +15,7 @@ CLI Python (oncle-jack-automation) que resuelve los datos mensuales de los carte
 ## Restricciones
 Ninguna tarea puede violarlas:
 
-- Sin credenciales, v1 solo local, Drive es v2.
+- Sin credenciales en la v1 de carteles; los bustos usan solo variable de entorno (ANTHROPIC_API_KEY), nunca en el repo. v1 solo local, Drive es v2.
 
 
 
