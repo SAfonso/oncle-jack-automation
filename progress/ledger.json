@@ -3,6 +3,10 @@
     {
       "task": 18,
       "decision": "Verificacion solo lectura del Excel real: col.7 sigue siendo 'Cómico' (no Comico_2_Nombre); solo la fila EJEMPLO (2) tiene 4 URLs Canva validas; filas 3-5 con fotos vacias. Tarea 18 NO cerrada: escalado al usuario, Excel sin tocar."
+    },
+    {
+      "scope": "spec",
+      "decision": "Usuario aprueba plan 18-23: un evento por mes (error si dos en mismo año+mes), --month opcional, fotos/nombres vacios solo permitidos fuera del mes objetivo, mark-generated repetido sin aviso, Estado vacio=no Generado, dd/mm/yy rechazado."
     }
   ],
   "tasks": [
@@ -31,6 +35,15 @@
       "id": 17,
       "status": "done",
       "resumen": "resolve pasa mes a load_workbook y convierte ValueError en ClickException; mark-generated no valida fotos; 4 tests CLI, suite 54 passed; PR #3 mergeado, CI verde.",
+      "scope": "fotos-canva",
+      "depends_on": [
+        16
+      ]
+    },
+    {
+      "id": 18,
+      "status": "done",
+      "resumen": "Excel real corregido por el usuario/leader: cabecera Comico_2_Nombre, fechas datetime dd/mm/yyyy (04/10/2026, 15/11/2026, 13/12/2026, 10/01/2027), sin nota de borrado; PR #4 mergeado, CI verde. Sin reviewer formal (solo datos; verificado por lectura).",
       "scope": "fotos-canva",
       "depends_on": [
         16

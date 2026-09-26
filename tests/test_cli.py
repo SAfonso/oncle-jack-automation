@@ -208,3 +208,13 @@ def test_mark_generated_funciona_con_foto_invalida(runner, excel_path):
     # Verificar que el evento fue marcado como Generado
     _, eventos = load_workbook(excel_path)
     assert eventos[0].estado == "Generado"
+
+
+def test_mark_generated_json_fecha_dd_mm_yyyy_con_fila_datetime(runner, excel_path):
+    result = runner.invoke(
+        cli, ["mark-generated", "--month", "Diciembre", "--excel", str(excel_path)]
+    )
+    assert result.exit_code == 0, result.output
+    assert json.loads(result.output)["fecha"] == "12/12/2026"
+    _, eventos = load_workbook(excel_path)
+    assert eventos[1].estado == "Generado"

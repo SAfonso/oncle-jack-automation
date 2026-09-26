@@ -1,3 +1,5 @@
+import datetime
+
 import pytest
 
 from oncle_jack.calendar import resolve_sabor
@@ -19,7 +21,7 @@ def _calendario():
 
 def _evento(mes, sabor_override=None):
     return Event(
-        fecha="14/11/2026",
+        fecha=datetime.date(2026, 11, 14),
         mes=mes,
         lugar="Carrer de les Roselles, 32",
         mc_1="Mercè Copado",

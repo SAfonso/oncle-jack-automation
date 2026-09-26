@@ -4,7 +4,9 @@ from pathlib import Path
 import openpyxl
 import pytest
 
-from oncle_jack.excel_source import load_workbook, mark_generated, save_calendar
+import datetime
+
+from oncle_jack.excel_source import load_workbook, mark_generated, parse_fecha, save_calendar
 
 FIXTURE = Path(__file__).parent / "fixtures" / "datos_ejemplo.xlsx"
 
@@ -31,9 +33,9 @@ def test_load_workbook_lee_calendario_y_eventos(excel_path):
     assert noviembre.sabor == "RIE"
     assert noviembre.fijo is False
 
-    assert len(eventos) == 1
+    assert len(eventos) == 2
     evento = eventos[0]
-    assert evento.fecha == "14/11/2026"
+    assert evento.fecha == datetime.date(2026, 11, 14)
     assert evento.mes == "Noviembre"
     assert evento.lugar == "Carrer de les Roselles, 32"
     assert evento.mc_1 == "Mercè Copado"
@@ -142,3 +144,49 @@ def test_load_workbook_con_mes_ignora_fotos_vacias_de_otros_meses(excel_path):
 
     _, eventos = load_workbook(excel_path, mes="Noviembre")
     assert len(eventos) == 2
+
+
+def test_parse_fecha_datetime():
+    assert parse_fecha(datetime.datetime(2026, 11, 14, 0, 0), 2) == datetime.date(2026, 11, 14)
+
+
+def test_parse_fecha_date():
+    assert parse_fecha(datetime.date(2026, 11, 14), 2) == datetime.date(2026, 11, 14)
+
+
+def test_parse_fecha_texto_valido_con_espacios():
+    assert parse_fecha(" 14/11/2026 ", 2) == datetime.date(2026, 11, 14)
+
+
+@pytest.mark.parametrize("valor", ["14/11/26", "2026-11-14", "", "   ", None, 45000, "31/02/2026"])
+def test_parse_fecha_invalida_lanza_valueerror_con_fila_y_valor(valor):
+    with pytest.raises(ValueError) as exc:
+        parse_fecha(valor, 7)
+    msg = str(exc.value)
+    assert "7" in msg
+    assert repr(valor) in msg
+
+
+def test_load_workbook_fechas_mixtas_datetime_y_texto(excel_path):
+    _, eventos = load_workbook(excel_path)
+    assert eventos[0].fecha == datetime.date(2026, 11, 14)  # texto
+    assert eventos[0].mes == "Noviembre"
+    assert eventos[1].fecha == datetime.date(2026, 12, 12)  # datetime
+    assert eventos[1].mes == "Diciembre"
+
+
+def test_load_workbook_fecha_invalida_error_con_fila(excel_path):
+    wb = openpyxl.load_workbook(excel_path)
+    wb["Eventos"].cell(row=3, column=1).value = "12/12/26"
+    wb.save(excel_path)
+    with pytest.raises(ValueError) as exc:
+        load_workbook(excel_path)
+    assert "3" in str(exc.value) and "12/12/26" in str(exc.value)
+
+
+def test_mark_generated_con_fila_datetime(excel_path):
+    _, eventos = load_workbook(excel_path)
+    mark_generated(excel_path, eventos[1])
+    _, recargados = load_workbook(excel_path)
+    assert recargados[1].estado == "Generado"
+    assert recargados[0].estado == "Pendiente"
