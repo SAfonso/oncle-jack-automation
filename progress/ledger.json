@@ -57,6 +57,15 @@
       "depends_on": [
         17
       ]
+    },
+    {
+      "id": 20,
+      "status": "done",
+      "resumen": "validate_evento_objetivo en foto_url.py: 4 nombres no vacios + 4 fotos Canva (reusa validate_foto_url); error de nombre con fecha, posicion, columna; suite 75 passed; PR #6 mergeado, CI verde.",
+      "scope": "validacion",
+      "depends_on": [
+        19
+      ]
     }
   ]
 }

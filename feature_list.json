@@ -261,7 +261,7 @@
   {
     "id": 20,
     "title": "Validador puro del evento objetivo: 4 fotos Canva y 4 nombres no vacíos",
-    "status": "pending",
+    "status": "done",
     "priority": "high",
     "complejidad": "baja",
     "depends_on": [
