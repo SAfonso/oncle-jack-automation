@@ -85,6 +85,16 @@
         19,
         20
       ]
+    },
+    {
+      "id": 23,
+      "status": "done",
+      "resumen": "--month opcional en resolve y mark-generated; sin el usa mes_objetivo(eventos,_hoy()) con _hoy() monkeypatchable; --month explicito ignora la logica automatica; mark-generated repetido marca el siguiente sin aviso; suite 95 passed; PR #9 mergeado, CI verde. Sugerencia no bloqueante: test mas directo del caso 'mes actual Generado -> siguiente' (el actual depende de Diciembre vacio en fixture). Plan 18-23 completo; tarea 3 (manual, usuario) desbloqueada.",
+      "scope": "cli",
+      "depends_on": [
+        21,
+        22
+      ]
     }
   ]
 }
