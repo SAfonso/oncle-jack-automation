@@ -6,6 +6,12 @@
       "status": "done",
       "resumen": "pytest local 26 passed; run 36000318128 de tests.yml en main success. Sin cambios de código; revisado y aprobado por reviewer.",
       "scope": "ci"
+    },
+    {
+      "id": 15,
+      "status": "done",
+      "resumen": "validate_foto_url en src/oncle_jack/foto_url.py; 15 tests, suite 41 passed; reviewer aprobado; PR #1 mergeado, CI verde. Nota no bloqueante: acepta puertos y host en mayusculas (spec no dice nada).",
+      "scope": "fotos-canva"
     }
   ]
 }
